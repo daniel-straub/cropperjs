@@ -5,7 +5,7 @@
  * Copyright 2015-present Chen Fengyuan
  * Released under the MIT license
  *
- * Date: 2018-06-04T13:45:10.947Z
+ * Date: 2018-06-07T10:10:24.987Z
  */
 
 'use strict';
@@ -1992,6 +1992,35 @@ var handlers = {
   }
 };
 
+var checkHorizontalBounds = function checkHorizontalBounds(canvasBounds, value) {
+  if (value < canvasBounds.left) {
+    return canvasBounds.left;
+  } else if (value > canvasBounds.right) {
+    return canvasBounds.right;
+  }
+
+  return value;
+};
+
+var checkVerticalBounds = function checkVerticalBounds(canvasBounds, value) {
+  if (value < canvasBounds.top) {
+    return canvasBounds.top;
+  } else if (value > canvasBounds.bottom) {
+    return canvasBounds.bottom;
+  }
+
+  return value;
+};
+
+var calculateRange = function calculateRange(pointer) {
+  var bounds = document.getElementsByClassName('cropper-canvas')[0].getBoundingClientRect();
+
+  return {
+    x: checkHorizontalBounds(bounds, pointer.endX) - checkHorizontalBounds(bounds, pointer.startX),
+    y: checkVerticalBounds(bounds, pointer.endY) - checkVerticalBounds(bounds, pointer.startY)
+  };
+};
+
 var change = {
   change: function change(e) {
     var options = this.options,
@@ -2029,10 +2058,7 @@ var change = {
     }
 
     var pointer = pointers[Object.keys(pointers)[0]];
-    var range = {
-      x: pointer.endX - pointer.startX,
-      y: pointer.endY - pointer.startY
-    };
+    var range = calculateRange(pointer);
     var check = function check(side) {
       switch (side) {
         case ACTION_EAST:
@@ -2227,7 +2253,6 @@ var change = {
           }
 
           check(ACTION_NORTH);
-          // changed sizing direction and fixed jumping of box (top left -> bottom right)
           width -= range.x;
           left += range.x;
           height = width / aspectRatio;

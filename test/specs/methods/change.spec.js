@@ -8,8 +8,12 @@ import {
 } from '../../../src/js/constants';
 
 describe('change (method)', () => {
+  let canvasBounds;
   const createPointerMove = (x, y) => ({
-    startX: 0, endX: x, startY: 0, endY: y,
+    startX: x >= 0 ? canvasBounds.left : canvasBounds.right,
+    endX: x >= 0 ? canvasBounds.left + x : canvasBounds.right + x,
+    startY: y >= 0 ? canvasBounds.top : canvasBounds.bottom,
+    endY: y >= 0 ? canvasBounds.top + y : canvasBounds.bottom + y,
   });
   const CROPBOX_INITIAL_VALUES = {
     left: 100,
@@ -21,6 +25,7 @@ describe('change (method)', () => {
   let cropper;
 
   beforeEach((done) => {
+    canvasBounds = document.getElementsByClassName('cropper-canvas')[0].getBoundingClientRect();
     const image = window.createImage();
     cropper = new Cropper(image, {
       ready() {
@@ -199,5 +204,24 @@ describe('change (method)', () => {
     expect(cropBoxDataNew.top).to.equal(100);
     expect(cropBoxDataNew.left).to.equal(60);
     expect(cropBoxDataNew.width).to.equal(40);
+  });
+
+  it('should resize cropping box correctly when resizing outside canvas', () => {
+    cropper.pointers[0] = {
+      startX: canvasBounds.left - 1,
+      endX: canvasBounds.left + 1, // move from left -1 to left +1 --> move 2 but expect move 1
+      startY: canvasBounds.top - 5,
+      endY: canvasBounds.top + 5, // move from top -5 to top +5 --> move 10 but expect move 5
+    };
+    cropper.action = ACTION_NORTH_WEST;
+
+    cropper.change({});
+
+    const cropBoxDataNew = cropper.getCropBoxData();
+
+    expect(cropBoxDataNew.height).to.equal(5);
+    expect(cropBoxDataNew.top).to.equal(105);
+    expect(cropBoxDataNew.left).to.equal(101);
+    expect(cropBoxDataNew.width).to.equal(9);
   });
 });

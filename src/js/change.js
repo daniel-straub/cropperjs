@@ -20,6 +20,36 @@ import {
   removeClass,
 } from './utilities';
 
+
+const checkHorizontalBounds = (canvasBounds, value) => {
+  if (value < canvasBounds.left) {
+    return canvasBounds.left;
+  } else if (value > canvasBounds.right) {
+    return canvasBounds.right;
+  }
+
+  return value;
+};
+
+const checkVerticalBounds = (canvasBounds, value) => {
+  if (value < canvasBounds.top) {
+    return canvasBounds.top;
+  } else if (value > canvasBounds.bottom) {
+    return canvasBounds.bottom;
+  }
+
+  return value;
+};
+
+const calculateRange = (pointer) => {
+  const bounds = document.getElementsByClassName('cropper-canvas')[0].getBoundingClientRect();
+
+  return {
+    x: checkHorizontalBounds(bounds, pointer.endX) - checkHorizontalBounds(bounds, pointer.startX),
+    y: checkVerticalBounds(bounds, pointer.endY) - checkVerticalBounds(bounds, pointer.startY),
+  };
+};
+
 export default {
   change(e) {
     const {
@@ -66,10 +96,7 @@ export default {
     }
 
     const pointer = pointers[Object.keys(pointers)[0]];
-    const range = {
-      x: pointer.endX - pointer.startX,
-      y: pointer.endY - pointer.startY,
-    };
+    const range = calculateRange(pointer);
     const check = (side) => {
       switch (side) {
         case ACTION_EAST:
